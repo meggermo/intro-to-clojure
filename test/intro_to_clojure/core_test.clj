@@ -7,4 +7,4 @@
   (fn [x] (* factor x)))
 
 (fact "Some basic clojure stuff"
-      ((multiplier 1) 2) => 1)
+      ((multiplier 1) 2) => 2)

@@ -24,8 +24,9 @@
 ;; Clojure's chars and strings
 (type \c)
 (type "What you'd expect")
-;; Clojure also has an m like type
-(type :x)
+;; Clojure also has an enumeration like type
+(type :keyword)
+(type ::namespaced-keyword)
 ;; Symbols are a very essential part of Clojure
 (type 'x)
 

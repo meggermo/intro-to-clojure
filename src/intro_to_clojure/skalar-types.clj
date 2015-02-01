@@ -20,6 +20,7 @@
 (type (biginteger 1))
 (type (bigint 1))
 (identical? (bigint 1e99) (biginteger 1e99))
+;; Clojure has it's own bigint with better equals/hashCode
 
 ;; Clojure detects overflow
 (+ Long/MAX_VALUE 1)
@@ -75,4 +76,3 @@
    (identical? x y)
    (meta x)
    (meta y)])
-

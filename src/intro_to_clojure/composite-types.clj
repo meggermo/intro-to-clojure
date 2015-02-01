@@ -9,7 +9,14 @@
 (type (array-map 4 3 2 1))
 
 ;; Syntactic sugar for collections
+
+;; A Vector
  [1 2]
+;; A list
 '(1 2)
+;; A hash map
  {1 2 2 3}
+;; A hash map
 #{1 2}
+
+;; Persistent data structures

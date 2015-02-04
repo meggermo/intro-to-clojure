@@ -1,6 +1,11 @@
 (ns intro-to-clojure.concurrency
   (:import [java.util.concurrent Executors]))
 
+;; Refs, Agents and Atoms
+;; ----------------------
+;; Semantics for accessing their value is the same for all
+;; but for modification they have their own.
+
 ;; ---------------------------------------
 ;; Utility stuff
 ;; ---------------------------------------
@@ -228,7 +233,20 @@
 
 
 
+;; ---------------------------------------
+;; Atoms: synchronous, but uncoordinated
+;; ---------------------------------------
 
+
+;; For Compare-And-Swap spinning operations:
+;; Atomic computation of a new value based on current value
+;; and swap in this new value
+
+
+(def *ticker* (atom 0))
+(defn tick [] (swap! *ticker* inc))
+(do-threads! tick :thread-count 100 :exec-count 100)
+@*ticker*
 
 
 

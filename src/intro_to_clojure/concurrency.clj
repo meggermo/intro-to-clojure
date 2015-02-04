@@ -1,6 +1,9 @@
 (ns intro-to-clojure.concurrency
   (:import [java.util.concurrent Executors]))
 
+;; ---------------------------------------
+;; Utility stuff
+;; ---------------------------------------
 (def *pool* (Executors/newFixedThreadPool
              (*  (.availableProcessors (Runtime/getRuntime)))))
 
@@ -13,8 +16,6 @@
     (.submit *pool*
              #(dotimes [_ exec-count] (f)))))
 
-(do-threads! #(println "Hi!") :thread-count 2 :exec-count 2)
-
 ;; Returns a sequence of yx coordinate pairs
 ;; for a square matrix of size matrix-size
 (defn neighbors
@@ -25,7 +26,14 @@
     (fn [neighbor-yx-coord] (every? #(< -1 % matrix-size) neighbor-yx-coord))
     (map #(map + yx-coord %) deltas))))
 
+;; ---------------------------------------
+;; End of utility stuff
+;; ---------------------------------------
 
+
+;; ---------------------------------------
+;; Refs
+;; ---------------------------------------
 
 
 ;; Initial  3x3 chess-board
@@ -34,16 +42,29 @@
    [:- :- :-]
    [:- :K :-]])
 
+;; applies a function to each square of the board
+(defn board-map
+  [f b]
+  (vec (map #(vec (for [x %] (f x))) b)))
+
+;; Here is the function that creates the initial
+;; state variables (the refs) for the chess game
+(defn reset-game!
+  []
+  (def board (board-map ref initial-board))
+  (def move-order (ref [[:K [2 1]] [:k [0 1]]]))
+  (def move-count (ref 0)))
+
 ;; function that returns possible moves
 ;; for a king at a given yx coordinate
 (def king-moves
   (partial neighbors 3))
 
-;; A legal move should not kick opponent from board
+;; A legal move should not kick the opponent from board
 (defn legal-move?
-  [desired-move other-king-pos]
+  [desired-pos other-king-pos]
   (when
-    (not= desired-move other-king-pos) desired-move))
+    (not= desired-pos other-king-pos) desired-pos))
 
 ;; Returns a vector containing the moving king and
 ;; a randomly selected legal move for that king.
@@ -54,16 +75,6 @@
         selected-move (some #(legal-move? % other-king-pos) shuffled-moves)]
   [moving-king selected-move]))
 
-;; applies a function to each square of the board
-(defn board-map
-  [f b]
-  (vec (map #(vec (for [x %] (f x))) b)))
-
-(defn reset-game!
-  []
-  (def board (board-map ref initial-board))
-  (def move-order (ref [[:K [2 1]] [:k [0 1]]]))
-  (def move-count (ref 0)))
 
 (reset-game!)
 (take 5 (repeatedly #(select-move @move-order)))
@@ -71,7 +82,10 @@
 (defn place-piece
   [old-piece new-piece] new-piece)
 
-;; We're going to alter the state by manipulating the refs
+;; We're going to alter the state by manipulating the refs:
+;; * put king in destination position
+;; * empty the king's previous position
+;; * increment the move counter by one
 ;; 1st argument is the return value of select-move
 ;; 2nd argument is the move-order ref
 (defn move-king
@@ -79,35 +93,61 @@
   (alter (get-in board destination) place-piece king-to-move)
   (alter (get-in board moving-king-pos) place-piece :-)
   (alter move-count inc))
+
 ;; Function to update the move-order ref
 (defn update-move-order
   [move]
     (alter move-order #(vector (second %) move)))
 
-;; Now combine both
+;; Now combine both alteration functions
 ;; The dosync makes sure that the 4 refs are modified
 ;; in a coordinated fashion
-(defn make-move
-  []
+(defn make-move []
   (dosync
    (let [move (select-move @move-order)]
      (move-king move @move-order)
      (update-move-order move))))
 
+;; Let's see what happens
 (reset-game!)
 (make-move)
 
 ;; Now let's have fun
 (defn play-chess
-  [times threads]
-  (do-threads! make-move :thread-count threads :exec-count times))
+  [move-fn times threads]
+  (do-threads! move-fn :thread-count threads :exec-count times))
 
 (reset-game!)
-(play-chess 10 10)
+(play-chess make-move 10 10)
 (board-map #(dosync (deref %)) board)
-@move-count
+(dosync @move-count)
 
+;; Make sure you set your transaction boundaries right!
+(defn make-bad-move []
+  (let [move (select-move @move-order)]
+    (dosync (move-king move @move-order))
+    (dosync (update-move-order move))))
 
+(reset-game!)
+(play-chess make-bad-move 10 10)
+(board-map #(dosync (deref %)) board)
+(dosync @move-count)
+
+;; The new value of the move-count does not depend on it's
+;; in-transation state and also not on any other refs.
+;; In those situations you can use commute instead of alter
+;; Since we know for sure that the source and destinatinon
+;; values are always different we can use commute there too:
+(defn move-king
+  [[king-to-move destination] [[_ moving-king-pos] [_ _]]]
+  (commute (get-in board destination) place-piece king-to-move)
+  (commute (get-in board moving-king-pos) place-piece :-)
+  (commute move-count inc))
+
+(reset-game!)
+(play-chess make-move 10 10)
+(board-map #(dosync (deref %)) board)
+(dosync @move-count)
 
 
 

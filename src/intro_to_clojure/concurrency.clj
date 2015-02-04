@@ -42,14 +42,14 @@
    [:- :- :-]
    [:- :K :-]])
 
-;; applies a function to each square of the board
 (defn board-map
+  "applies a function to each square of the board"
   [f b]
   (vec (map #(vec (for [x %] (f x))) b)))
 
-;; Here is the function that creates the initial
-;; state variables (the refs) for the chess game
 (defn reset-game!
+  " Here is the function that creates the initial
+    state variables (the refs) for the chess game"
   []
   (def board (board-map ref initial-board))
   (def move-order (ref [[:K [2 1]] [:k [0 1]]]))
@@ -148,6 +148,87 @@
 (play-chess make-move 10 10)
 (board-map #(dosync (deref %)) board)
 (dosync @move-count)
+
+
+;; ---------------------------------------
+;; Agents: asynchronous
+;; ---------------------------------------
+;; send and send-off
+
+;; Example use case: serialize access to resources
+
+(def log-agent (agent 0))
+
+(defn do-log
+  [msg-id message]
+  (println msg-id ":" message)
+  (inc msg-id))
+
+(defn do-step
+  "Try to look busy"
+  [channel message & {:keys [delayMillis] :or {delayMillis 1}}]
+  (Thread/sleep delayMillis)
+  (send-off log-agent do-log (str channel message)))
+
+(defn three-step
+  [channel]
+  (do-step channel " Initializing (step 0)")
+  (do-step channel " Starting up  (step 1)")
+  (do-step channel " Really busy  (step 2)")
+  (do-step channel " Done         (step 3)"))
+
+(defn go-to-work []
+  (do-threads! #(three-step "alpha"))
+  (do-threads! #(three-step "beta "))
+  (do-threads! #(three-step "gamma")))
+
+(go-to-work)
+;; The alpha, beta and gamma logs are out of order
+;; but the msg-id increments linearly as expected.
+
+@log-agent
+
+(defn important-msg
+  "If you want to be sure that the agent has completed
+   use await. It will block the current thread until
+   work is completed."
+  []
+  (do-step "PRIO-1" " This must be executed" :delayMillis 10000)
+  (await log-agent)
+  @log-agent)
+
+(important-msg)
+
+
+;; Error handling
+;; There are 2 error handling modes :fail and :continue
+;; Agents use :fail by default`
+
+;; Suppose you're trying to (re)set it's value
+(send log-agent (fn [] 100))
+;; It looks OK, but ...
+@log-agent
+;; It's in fail state
+(agent-error log-agent)
+;; Trying to reset it with a correct function will also fail
+(send log-agent (fn [_] 100))
+;; You'll need to restart it
+(restart-agent log-agent 0 :clear-actions true)
+
+;; Other state is :continue
+(defn handle-error
+  [an-agent error-message]
+  (println "ERROR: " error-message))
+
+;; Configure the agent to delegate error handling
+(set-error-handler! log-agent handle-error)
+(set-error-mode! log-agent :continue)
+(send log-agent (fn [x] (/ x 0)))
+(send log-agent (fn [] 1))
+
+
+
+
 
 
 

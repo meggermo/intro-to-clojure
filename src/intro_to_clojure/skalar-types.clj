@@ -67,6 +67,9 @@
 (ifn? :zombies)
 ;; so you can use them to lookup values
 (:zombies population)
+;; The other way around works too, because
+;; hash maps are functions too
+(population :humans)
 
 ;; As enumerations
 (def size

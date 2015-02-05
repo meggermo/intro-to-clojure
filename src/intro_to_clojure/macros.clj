@@ -14,6 +14,21 @@
 (eval '(list 1 2))
 (eval (list (symbol "+") 1 2))
 
+;; syntax quote: prevents evaluation
+;; and expands symbols to fully qualified names
+(println `(+ 1 2))
+
+;; unquote does the opposite of quote
+(println `(+ 1 2 ~(+ 1 2)))
+
+;; unquote splice
+;; The @ will tell Clojure to unpack the sequence x
+;; and splice it into the resulting list
+(let [x '(2 3)] (println `(1 ~@x)))
+;; without the splice you'd end up with a nested sequence
+(let [x '(2 3)] (println `(1 ~x)))
+
+
 (defmacro do-until
   "Continues evaluating pred, expression pairs until
    the first pred returns a falsey value"
@@ -39,6 +54,7 @@
  '(do-until true 1 true 2 false 3 false 4))
 
 
+;; Another example safely handling IO:
 (defmacro with-resource
   [binding close-fn & body]
   `(let ~binding
@@ -50,9 +66,9 @@
 (defn url-stream [url]
   (-> url URL. .openStream InputStreamReader. BufferedReader.))
 
-
 (let [stream (url-stream "http://www.joyofclojure.com/")]
   (with-resource
-    [page stream]
-    #(.close %)
+    [page stream, blip 123345] ;; binding
+    #(.close %)                ;;close-fn
+    (print blip)               ;; body
     (.readLine page)))

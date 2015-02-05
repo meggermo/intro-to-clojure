@@ -41,17 +41,53 @@ answer-2
 ;; PROBLEM 3
 ;; The prime factors of 13195 are 5, 7, 13 and 29.
 ;; What is the largest prime factor of the number 600851475143 ?
-(defn sieve [s]
-  (cons (first s)
-        (lazy-seq
-         (sieve (filter #(not= 0 (mod % (first s)))(rest s))))))
-(defn prime-factors
-  [x]
-  (let [primes (take-while
-                #(<= % (Math/sqrt x)) (sieve (iterate inc 2)))]
-    (filter #(divisor? x %) primes)))
+(defn get-max-prime-factor [num cur limit]
+  (if (> cur limit)
+    num
+    (if (= num cur)
+        num
+        (if (zero? (mod num cur))
+          (get-max-prime-factor (/ num cur) cur limit)
+          (get-max-prime-factor num (inc cur) limit)))))
 
-(prime-factors 600851475143)
+(defn max-prime-factor [num]
+    (let [limit (long (Math/sqrt num))]
+        (get-max-prime-factor num 2 limit)))
+(def answer-3
+  (max-prime-factor  600851475143))
+answer-3
 
 
+
+;; PROBLEM 4
+;; A palindromic number reads the same both ways. The largest palindrome made from the product
+;; of two 2-digit numbers is 9009 = 91 × 99.
+;; Find the largest palindrome made from the product of two 3-digit numbers.
+(defn palindrome? [s]
+  (= (reverse (str s) ) (seq (str s))))
+
+(def answer-4 (apply max
+       (filter palindrome?
+               (for
+                   [a (range 100 1000)
+                    b (range 100 1000)]
+                 (* a b)))))
+answer-4
+
+;; PROBLEM 5
+;; 2520 is the smallest number that can be divided by each of the numbers from 1 to 10 without
+;; any remainder.
+;; What is the smallest positive number that is evenly divisible by all of the numbers from 1 to 20?
+
+(defn gcd
+  [a b]
+  (if (zero? b) a (recur b (mod a b))))
+
+(defn lcm
+  [a b]
+  (/ (* a b) (gcd a b)))
+
+(def answer-5
+  (reduce #(lcm %1 %2) (range 1 21)))
+answer-5
 

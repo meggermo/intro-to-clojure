@@ -58,7 +58,7 @@
 ;; Closures and functions
 ;; --------------------------------------------
 ;; using local binding with let
-(def times-n [n]
+(defn times-n [n]
   (let [x n]
     (fn [y] (* y x))))
 ;; but you cal also close over the function arguments
@@ -68,11 +68,3 @@
 (def d7 (divisor? 7))
 ;; numbers between 1 and 64 divisible by 7:
 (filter d7 (range 1 64))
-
-
-;; --------------------------------------------
-;; Recursive functions
-;; --------------------------------------------
-
-
-

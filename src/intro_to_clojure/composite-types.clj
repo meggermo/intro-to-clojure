@@ -78,12 +78,3 @@ x
 (take 9 triangles)
 (take 9 (filter even? triangles))
 (nth  triangles 99)
-
-
-
-
-
-
-
-
-

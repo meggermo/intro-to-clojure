@@ -1,8 +1,11 @@
 (ns intro-to-clojure.protocols)
 
+;; A record is similar to a JavaBean with getters and setters only.
+;; This is the record for a node in a binary tree
 (defrecord Node [v left right])
 
 (defn add
+  "Adds the value v into the balanced binary tree"
   [n v]
   (cond
    (nil? n) (Node. v nil nil)
@@ -11,6 +14,7 @@
 
 ;; Function for pretty printing a tree structure
 (defn node-seq
+  "Flattens the balanced tree into a ordered sequence"
   [n]
   (when n
     (concat (node-seq (:left n))
@@ -55,5 +59,3 @@
   (palindrome [s] (str s (clojure.string/reverse s))))
 
 (palindrome "partybo")
-
-

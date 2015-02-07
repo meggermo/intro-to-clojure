@@ -27,6 +27,18 @@ foo
   (+ foo foo))
 (+ foo foo)
 
+;; If you want to prevent accidental re-defs of your vars
+;; use the defonce special form. A root binding value is mandatory.
+;; Once defined, attemps to re-define it just return nil.
+(defonce bar 1)
+(defonce bar 2)
+bar
+
+;; Dynamically scoped vars can however still re-def the thread-local value
+(defonce ^:dynamic baz 1)
+(binding [baz 2] (+ baz baz))
+
+
 ;; The var special form or the #' reader macro can be used to get
 ;; an interned Var object instead of its current value.
 
@@ -53,5 +65,3 @@ foo
   (future (doall (repeatedly #'my-fn))))
 
 (future-cancel my-loop)
-
-

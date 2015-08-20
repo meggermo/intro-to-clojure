@@ -20,7 +20,7 @@
 '(1 2)
 ;; A hash map
  {1 2 2 3}
-;; A hash map
+;; A hash set
 #{1 2}
 
 ;; Persistent data structures
@@ -42,39 +42,3 @@ x
 (rest (rest (rest s)))
 (next (rest (rest s)))
 
-;;
-(defn nest-recursive
-  "turns a flat seq into a nested vector"
-  [[x & xs]]
-  (if x
-    [x (nest-recursive xs)]
-    []))
-
-;; Looks fine
-(nest-recursive (range 3))
-
-;; But alas, the limitations of recursive functions
-(nest-recursive (range 2000000))
-
-
-;; We can fix this by using the lazy-seq macro:
-(defn nest-lazy
-  [xs]
-  (lazy-seq
-   (if (seq xs)
-     [(first xs) (nest-lazy (rest xs))]
-     [])))
-
-;; No more stack overflow
-(dorun (nest-lazy (range 2000000)))
-
-;; lazy sequences are useful to produce infinite streams
-
-(defn triangle-fn [n] (/ (* n (+ n 1)) 2))
-
-(def naturals (iterate inc 1))
-(def triangles (map triangle-fn naturals))
-
-(take 9 triangles)
-(take 9 (filter even? triangles))
-(nth  triangles 99)

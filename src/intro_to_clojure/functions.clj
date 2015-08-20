@@ -9,50 +9,50 @@
 ;; - returned as the value of a function
 ;; --------------------------------------------
 
-;; On demand creation
-;; by composition
+;; So how do you define a function?
+;; use a function to create them!
+;; use (doc f) to get documentation on f
+(defn my-fn!
+  "This is my first clojure function"
+  [x]
+  ;; functions return the value of the
+  ;; last evaluated expression
+  (println "hello" x)
+  true
+  false
+  (.toUpperCase x)
+)
+
+(my-fn! "there")
+
+;; Or use the fn function for defining anonymous functions
+;; and bind them to a symbol yourself
+(def join
+  (fn [sep coll]
+    (apply str (interpose sep coll))))
+
+(join \- [\a "and" \b])
+
+;; Or use the # special form
+(def times-two
+  #(* 2 %))
+
+(times-two 3)
+
+;; Clojure has many ways to construct function out of functions
+;; composition
 ((comp not even?) 1)
 ((comp first rest) [1 2 3])
 ((comp keyword name) (quote blip))
 
-;; by partial application
-((partial + 5) 10 20)
-((partial map even?) (range 4))
+;; partial application
+(let [plus-5 (partial + 5)]
+  (plus-5 10 20))
 
-;; Functions as data
-(defn join
-  {:test (fn []
-           (assert
-            (= (join "/" [\a \b \c]) "a/b/d")))}
-  [separator coll]
-  (apply str (interpose separator coll)))
-(clojure.test/run-tests)
+;; The first argument of the function map is the function even?
+(let [all-even (partial map even?)]
+  (all-even (range 4)))
 
-
-;; Higher order functions
-;; Functions as arguments
-(def languages
-  [{:name "fortran"   :year 1957 :rank 40 :loc 9.0e6}
-   {:name "lisp"      :year 1958 :rank 10 :loc 0.1e6}
-   {:name "smalltalk" :year 1968 :rank 11 :loc 0.1e6}
-   {:name "haskell"   :year 1990 :rank 10 :loc 0.2e6}])
-
-;; sort the languages by conciseness
-;; i.e. highest rank with lowest lines of code
-(def sort-by-conciseness
-  (partial sort-by #(* (:loc %) (:rank %))))
-
-(map :name (sort-by-conciseness languages))
-
-;; Functions as return values
-;; We've already seen some provided by clojure
-(defn columns
-  "returns a function that sorts by the given columns names"
-  [column-names]
-  (fn [row]
-    (vec (map row column-names))))
-
-(sort-by (columns [:rank :loc]) languages)
 
 ;; --------------------------------------------
 ;; Closures and functions
@@ -61,10 +61,13 @@
 (defn times-n [n]
   (let [x n]
     (fn [y] (* y x))))
-;; but you cal also close over the function arguments
+
+;; You can close over the function arguments directly too
 (defn divisor? [denom]
   (fn [number]
     (zero? (rem number denom))))
+
 (def d7 (divisor? 7))
+
 ;; numbers between 1 and 64 divisible by 7:
 (filter d7 (range 1 64))

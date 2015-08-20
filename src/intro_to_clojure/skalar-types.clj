@@ -9,9 +9,11 @@
 
 (type 1)
 (type 912731278913889141849147393814819)
+
 ;; You're not stuck to base-10
 ;; There's the usual hex notation
 (= 0xFF 255)
+
 ;; Radix notation up to base 36 is supported
 (= 2r11 3)
 (= 3r12 5)
@@ -22,11 +24,17 @@
 (type (byte 1))
 (type (biginteger 1))
 (type (bigint 1))
-(identical? (bigint 1e99) (biginteger 1e99))
-;; Clojure has it's own bigint with better equals/hashCode
+(type 1N)
 
 ;; Clojure detects overflow
 (+ Long/MAX_VALUE 1)
+
+;; --------------------------------------------
+;; Rational numbers
+;; --------------------------------------------
+(type 1/2)
+(type (+ 1/3 1/3 1/3))
+
 
 ;; --------------------------------------------
 ;; Floating point numbers
@@ -35,6 +43,7 @@
 ;; Floating literals are truncated by default
 ;; For high precision numbers use the M literal
 (type 2.123456789123456789123456789M)
+
 
 ;; --------------------------------------------
 ;; chars and strings
@@ -45,11 +54,6 @@
 ;; Until now, there isn't much different from Java
 ;; But now for some Clojure specific  types
 
-;; --------------------------------------------
-;; Rational numbers
-;; --------------------------------------------
-(type 1/2)
-(type (+ 1/3 1/3 1/3))
 
 ;; --------------------------------------------
 ;; Keywords
@@ -80,7 +84,13 @@
 ;; They are roughly analogous to identifiers in Java
 ;; --------------------------------------------
 (type (quote x))
-(name (quote x))
+
+;; ' is the special form syntactic sugar
+(name 'the-quote-special-form)
+(symbol "a-symbol-from-a-string")
+(symbol? 'x)
+
+
 ;; Clojure symbols are however more than only identifiers
 (= 'hippo 'hippo)
 (identical? 'hippo 'hippo)
@@ -92,3 +102,4 @@
    (identical? x y)
    (meta x)
    (meta y)])
+

@@ -4,8 +4,8 @@
   :url "http://github.com/meggermo/intro-to-clojure"
 
   :dependencies [[org.clojure/clojure "1.6.0"]
-                 [midje "1.6.3" :exclusions [org.clojure/clojure]]]
+                 [midje "1.7.0" :exclusions [org.clojure/clojure]]]
 
   :profiles {:dev
-             {:dependencies [[midje "1.6.3" :exclusions [org.clojure/clojure]]]
+             {:dependencies [[midje "1.7.0" :exclusions [org.clojure/clojure]]]
               :plugins [[lein-midje "3.1.3"]]}})

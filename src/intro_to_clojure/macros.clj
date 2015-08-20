@@ -56,19 +56,32 @@
 
 ;; Another example safely handling IO:
 (defmacro with-resource
-  [binding close-fn & body]
-  `(let ~binding
+  [[resource & _ :as bindings] close-fn & body]
+  `(let ~bindings
      (try
        (do ~@body)
        (finally
-        (~close-fn ~(binding 0))))))
+        (~close-fn ~resource)))))
 
 (defn url-stream [url]
   (-> url URL. .openStream InputStreamReader. BufferedReader.))
 
-(let [stream (url-stream "http://www.joyofclojure.com/")]
+(let [stream (url-stream "http://www.joyofclojure.com/hello")]
   (with-resource
-    [page stream, blip 123345] ;; binding
+    [web-page stream, blip 123345] ;; binding
     #(.close %)                ;;close-fn
     (print blip)               ;; body
-    (.readLine page)))
+    (.readLine web-page)))
+
+
+(defmacro def-watched
+  [n & v]
+  `(do
+     (def ~n ~@v)
+     (add-watch #'~n
+                :re-bind
+                (fn [~'k ~'r old-val# new-val#] (prn old-val# "->" new-val#)))))
+
+(def-watched y 1)
+(def y 3)
+
